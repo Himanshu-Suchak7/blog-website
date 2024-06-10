@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactTagInput from "@pathofdev/react-tag-input";
 import "@pathofdev/react-tag-input/build/index.css";
 import { db, storage } from "../firebase";
@@ -13,6 +13,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { toast } from "react-toastify";
+import JoditEditor from "jodit-react";
 
 const initialState = {
   title: "",
@@ -145,7 +146,9 @@ const AddEditBlog = ({ user, setActive }) => {
 
     navigate("/");
   };
-
+  // eslint-disable-next-line
+  const editor = useRef(null);
+  const [content, setContent] = useState("");
   return (
     <div className="container-fluid mb-4">
       <div className="container">
@@ -216,12 +219,14 @@ const AddEditBlog = ({ user, setActive }) => {
                 </select>
               </div>
               <div className="col-12 py-3">
-                <textarea
-                  className="form-control description-box"
-                  placeholder="Description"
-                  value={description}
-                  name="description"
-                  onChange={handleChange}
+                <JoditEditor
+                  ref={editor}
+                  value={content}
+                  tabIndex={1}
+                  onBlur={(newContent) => setContent(newContent)}
+                  onChange={(newContent) => {
+                    setContent(newContent);
+                  }}
                 />
               </div>
               <div className="mb-3">
