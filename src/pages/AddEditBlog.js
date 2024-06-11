@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 import JoditEditor from "jodit-react";
+import DOMPurify from "dompurify";
 
 const initialState = {
   title: "",
@@ -38,12 +39,14 @@ const AddEditBlog = ({ user, setActive }) => {
   const [form, setForm] = useState(initialState);
   const [file, setFile] = useState(null);
   const [progress, setProgress] = useState(null);
+  const editor = useRef(null);
+  const [content, setContent] = useState("");
 
   const { id } = useParams();
 
   const navigate = useNavigate();
 
-  const { title, tags, category, trending, description } = form;
+  const { title, tags, category, trending } = form;
 
   useEffect(() => {
     const uploadFile = () => {
@@ -72,7 +75,7 @@ const AddEditBlog = ({ user, setActive }) => {
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-            toast.info("Image upload to firebase successfully");
+            toast.info("Image uploaded successfully");
             setForm((prev) => ({ ...prev, imgUrl: downloadUrl }));
           });
         }
@@ -83,7 +86,9 @@ const AddEditBlog = ({ user, setActive }) => {
   }, [file]);
 
   useEffect(() => {
-    id && getBlogDetail();
+    if (id) {
+      getBlogDetail();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -91,7 +96,9 @@ const AddEditBlog = ({ user, setActive }) => {
     const docRef = doc(db, "blogs", id);
     const snapshot = await getDoc(docRef);
     if (snapshot.exists()) {
-      setForm({ ...snapshot.data() });
+      const blogData = snapshot.data();
+      setForm(blogData);
+      setContent(blogData.description || ""); // Initialize the content state
     }
     setActive(null);
   };
@@ -114,41 +121,36 @@ const AddEditBlog = ({ user, setActive }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (category && tags && title && description && trending) {
-      if (!id) {
-        try {
+    const sanitizedContent = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] });
+    if (category && tags && title && sanitizedContent && trending) {
+      try {
+        const newForm = { ...form, description: sanitizedContent };
+        if (!id) {
           await addDoc(collection(db, "blogs"), {
-            ...form,
+            ...newForm,
             timestamp: serverTimestamp(),
             author: user.displayName,
             userId: user.uid,
           });
           toast.success("Blog created successfully");
-        } catch (err) {
-          console.log(err);
-        }
-      } else {
-        try {
+        } else {
           await updateDoc(doc(db, "blogs", id), {
-            ...form,
+            ...newForm,
             timestamp: serverTimestamp(),
             author: user.displayName,
             userId: user.uid,
           });
           toast.success("Blog updated successfully");
-        } catch (err) {
-          console.log(err);
         }
+        navigate("/");
+      } catch (err) {
+        console.log(err);
       }
     } else {
-      return toast.error("All fields are mandatory to fill");
+      toast.error("All fields are mandatory to fill");
     }
-
-    navigate("/");
   };
-  // eslint-disable-next-line
-  const editor = useRef(null);
-  const [content, setContent] = useState("");
+
   return (
     <div className="container-fluid mb-4">
       <div className="container">
@@ -224,9 +226,7 @@ const AddEditBlog = ({ user, setActive }) => {
                   value={content}
                   tabIndex={1}
                   onBlur={(newContent) => setContent(newContent)}
-                  onChange={(newContent) => {
-                    setContent(newContent);
-                  }}
+                  onChange={(newContent) => setContent(newContent)}
                 />
               </div>
               <div className="mb-3">
