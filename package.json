@@ -8,7 +8,12 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.3.3",
+    "docx": "^8.5.0",
+    "dompurify": "^3.1.5",
     "firebase": "^10.12.2",
+    "html-react-parser": "^5.1.10",
+    "jodit-react": "^4.1.2",
+    "jspdf": "^2.5.1",
     "lodash.debounce": "^4.0.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -18,7 +23,8 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.5",
     "saas": "^1.0.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
