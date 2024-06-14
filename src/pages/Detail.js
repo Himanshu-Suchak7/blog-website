@@ -23,6 +23,9 @@ import Tags from "../components/Tags";
 import UserComments from "../components/UserComments";
 import { db } from "../firebase";
 import Spinner from "../components/Spinner";
+import { jsPDF } from "jspdf";
+import * as XLSX from "xlsx";
+import { Packer, Document, Paragraph, TextRun } from "docx";
 
 const Detail = ({ setActive, user }) => {
   const userId = user?.uid;
@@ -35,6 +38,7 @@ const Detail = ({ setActive, user }) => {
   let [likes, setLikes] = useState([]);
   const [userComment, setUserComment] = useState("");
   const [relatedBlogs, setRelatedBlogs] = useState([]);
+  const [format, setFormat] = useState("pdf"); // State to hold the selected format
 
   useEffect(() => {
     const getRecentBlogs = async () => {
@@ -125,7 +129,58 @@ const Detail = ({ setActive, user }) => {
     }
   };
 
-  console.log("relatedBlogs", relatedBlogs);
+  const handleDownload = async () => {
+    if (format === "pdf") {
+      const doc = new jsPDF();
+      doc.text("Title: " + blog?.title, 10, 10);
+      doc.text("Description: " + blog?.description, 10, 20);
+      doc.text("Tags: " + blog?.tags.join(", "), 10, 30);
+      doc.save("blog.pdf");
+    } else if (format === "excel") {
+      const data = [
+        {
+          title: blog?.title,
+          description: blog?.description,
+          tags: blog?.tags.join(", "),
+        },
+      ];
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Blog");
+      XLSX.writeFile(workbook, "blog.xlsx");
+    } else if (format === "word") {
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "Title: " + blog?.title, bold: true }),
+                  new TextRun({
+                    text: "Description: " + blog?.description,
+                    break: 1,
+                  }),
+                  new TextRun({
+                    text: "Tags: " + blog?.tags.join(", "),
+                    break: 1,
+                  }),
+                ],
+              }),
+            ],
+          },
+        ],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "blog.docx";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+  };
+
   return (
     <div className="single">
       <div
@@ -176,6 +231,20 @@ const Detail = ({ setActive, user }) => {
                 setUserComment={setUserComment}
                 handleComment={handleComment}
               />
+              <div className="download-section">
+                <select
+                  className="format-dropdown"
+                  value={format}
+                  onChange={(e) => setFormat(e.target.value)}
+                >
+                  <option value="pdf">PDF</option>
+                  <option value="word">Word</option>
+                  <option value="excel">Excel</option>
+                </select>
+                <button className="download-button" onClick={handleDownload}>
+                  Download
+                </button>
+              </div>
             </div>
             <div className="col-md-3">
               <div className="blog-heading text-start py-2 mb-4">Tags</div>
