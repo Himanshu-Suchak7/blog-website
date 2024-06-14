@@ -25,6 +25,7 @@ const About = () => {
             the art of blogging. Welcome to IamBlogger—where every voice
             matters.
           </p>
+          <b>Created By, Himanshu D Suchak.</b>
         </div>
       </div>
     </div>

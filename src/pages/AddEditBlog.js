@@ -222,6 +222,7 @@ const AddEditBlog = ({ user, setActive }) => {
               </div>
               <div className="col-12 py-3">
                 <JoditEditor
+                  className="jodit-container"
                   ref={editor}
                   value={content}
                   tabIndex={1}
