@@ -231,20 +231,22 @@ const Detail = ({ setActive, user }) => {
                 setUserComment={setUserComment}
                 handleComment={handleComment}
               />
-              <div className="download-section">
-                <select
-                  className="format-dropdown"
-                  value={format}
-                  onChange={(e) => setFormat(e.target.value)}
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="word">Word</option>
-                  <option value="excel">Excel</option>
-                </select>
-                <button className="download-button" onClick={handleDownload}>
-                  Download
-                </button>
-              </div>
+              {userId === blog?.userId && (
+                <div className="download-section">
+                  <select
+                    className="format-dropdown"
+                    value={format}
+                    onChange={(e) => setFormat(e.target.value)}
+                  >
+                    <option value="pdf">PDF</option>
+                    <option value="word">Word</option>
+                    <option value="excel">Excel</option>
+                  </select>
+                  <button className="download-button" onClick={handleDownload}>
+                    Download
+                  </button>
+                </div>
+              )}
             </div>
             <div className="col-md-3">
               <div className="blog-heading text-start py-2 mb-4">Tags</div>
