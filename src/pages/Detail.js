@@ -133,15 +133,23 @@ const Detail = ({ setActive, user }) => {
     if (format === "pdf") {
       const doc = new jsPDF();
       doc.text("Title: " + blog?.title, 10, 10);
-      doc.text("Description: " + blog?.description, 10, 20);
-      doc.text("Tags: " + blog?.tags.join(", "), 10, 30);
+      doc.text(
+        "Created At: " + blog?.timestamp.toDate().toDateString(),
+        10,
+        20
+      );
+      doc.text("Category: " + blog?.category, 10, 30);
+      doc.text("Description: " + blog?.description, 10, 40);
+      doc.text("Tags: " + blog?.tags.join(", "), 10, 50);
       doc.save("blog.pdf");
     } else if (format === "excel") {
       const data = [
         {
-          title: blog?.title,
-          description: blog?.description,
-          tags: blog?.tags.join(", "),
+          Title: blog?.title,
+          Created_At: blog?.timestamp.toDate().toDateString(),
+          Category: blog?.category,
+          Description: blog?.description,
+          Tags: blog?.tags.join(", "),
         },
       ];
       const worksheet = XLSX.utils.json_to_sheet(data);
@@ -157,6 +165,15 @@ const Detail = ({ setActive, user }) => {
               new Paragraph({
                 children: [
                   new TextRun({ text: "Title: " + blog?.title, bold: true }),
+                  new TextRun({
+                    text:
+                      "Created At: " + blog?.timestamp.toDate().toDateString(),
+                    break: 1,
+                  }),
+                  new TextRun({
+                    text: "Category: " + blog?.category,
+                    break: 1,
+                  }),
                   new TextRun({
                     text: "Description: " + blog?.description,
                     break: 1,
