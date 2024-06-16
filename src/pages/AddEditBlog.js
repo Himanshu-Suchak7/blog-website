@@ -43,46 +43,34 @@ const AddEditBlog = ({ user, setActive }) => {
   const [content, setContent] = useState("");
 
   const { id } = useParams();
-
   const navigate = useNavigate();
-
   const { title, tags, category, trending } = form;
 
   useEffect(() => {
-    const uploadFile = () => {
-      const storageRef = ref(storage, file.name);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log("Upload is " + progress + "% done");
-          setProgress(progress);
-          switch (snapshot.state) {
-            case "paused":
-              console.log("Upload is paused");
-              break;
-            case "running":
-              console.log("Upload is running");
-              break;
-            default:
-              break;
+    if (file) {
+      const uploadFile = () => {
+        const storageRef = ref(storage, `images/${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress =
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setProgress(progress);
+          },
+          (error) => {
+            toast.error("File upload failed. Please try again.");
+          },
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
+              toast.info("Image uploaded successfully");
+              setForm((prev) => ({ ...prev, imgUrl: downloadUrl }));
+            });
           }
-        },
-        (error) => {
-          console.log(error);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-            toast.info("Image uploaded successfully");
-            setForm((prev) => ({ ...prev, imgUrl: downloadUrl }));
-          });
-        }
-      );
-    };
-
-    file && uploadFile();
+        );
+      };
+      uploadFile();
+    }
   }, [file]);
 
   useEffect(() => {
@@ -98,7 +86,7 @@ const AddEditBlog = ({ user, setActive }) => {
     if (snapshot.exists()) {
       const blogData = snapshot.data();
       setForm(blogData);
-      setContent(blogData.description || ""); // Initialize the content state
+      setContent(blogData.description || "");
     }
     setActive(null);
   };
@@ -121,10 +109,17 @@ const AddEditBlog = ({ user, setActive }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const sanitizedContent = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] });
-    if (category && tags && title && sanitizedContent && trending) {
+    const sanitizedContent = DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    });
+    if (category && tags.length > 0 && title && sanitizedContent && trending) {
       try {
-        const newForm = { ...form, description: sanitizedContent };
+        const newForm = {
+          ...form,
+          description: sanitizedContent,
+          titleLowerCase: title.toLowerCase(),
+        };
         if (!id) {
           await addDoc(collection(db, "blogs"), {
             ...newForm,
@@ -144,7 +139,7 @@ const AddEditBlog = ({ user, setActive }) => {
         }
         navigate("/");
       } catch (err) {
-        console.log(err);
+        toast.error("Error saving blog. Please try again.");
       }
     } else {
       toast.error("All fields are mandatory to fill");
@@ -180,7 +175,7 @@ const AddEditBlog = ({ user, setActive }) => {
                 />
               </div>
               <div className="col-12 py-3">
-                <p className="trending">Is it trending blog ?</p>
+                <p className="trending">Is it trending blog?</p>
                 <div className="form-check-inline mx-2">
                   <input
                     type="radio"
@@ -212,7 +207,9 @@ const AddEditBlog = ({ user, setActive }) => {
                   onChange={onCategoryChange}
                   className="catg-dropdown"
                 >
-                  <option>Please select category</option>
+                  <option value="" disabled>
+                    Please select category
+                  </option>
                   {categoryOption.map((option, index) => (
                     <option value={option || ""} key={index}>
                       {option}

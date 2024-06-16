@@ -11,6 +11,8 @@ import {
   orderBy,
   where,
 } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { isEmpty } from "lodash";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
@@ -21,7 +23,7 @@ import FeatureBlogs from "../components/FeatureBlogs";
 import RelatedBlog from "../components/RelatedBlog";
 import Tags from "../components/Tags";
 import UserComments from "../components/UserComments";
-import { db } from "../firebase";
+import { db, app } from "../firebase";
 import Spinner from "../components/Spinner";
 import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
@@ -129,20 +131,37 @@ const Detail = ({ setActive, user }) => {
     }
   };
 
+  const storage = getStorage(app);
   const handleDownload = async () => {
     if (format === "pdf") {
-      const doc = new jsPDF();
-      doc.text("Title: " + blog?.title, 10, 10);
-      doc.text("Created By: " + blog?.author, 10, 20);
-      doc.text(
-        "Created On: " + blog?.timestamp.toDate().toDateString(),
-        10,
-        30
-      );
-      doc.text("Category: " + blog?.category, 10, 40);
-      doc.text("Description: " + blog?.description, 10, 50);
-      doc.text("Tags: " + blog?.tags.join(", "), 10, 60);
-      doc.save("blog.pdf");
+      try {
+        const storageRef = ref(storage, blog.imgUrl);
+        const imgURL = await getDownloadURL(storageRef);
+
+        const doc = new jsPDF();
+        doc.text("Title: " + blog?.title, 10, 10);
+        doc.text(
+          "Created On: " + blog?.timestamp.toDate().toDateString(),
+          10,
+          20
+        );
+        doc.text("Category: " + blog?.category, 10, 30);
+        doc.text("Description: " + blog?.description, 10, 40);
+        doc.text("Tags: " + blog?.tags.join(", "), 10, 50);
+
+        const img = new Image();
+        img.src = imgURL;
+        img.onload = () => {
+          doc.addImage(img, "JPEG", 10, 60, 180, 160);
+          doc.save("blog.pdf");
+        };
+
+        img.onerror = (error) => {
+          console.error("Error loading image:", error);
+        };
+      } catch (error) {
+        console.error("Error handling download:", error);
+      }
     } else if (format === "excel") {
       const data = [
         {

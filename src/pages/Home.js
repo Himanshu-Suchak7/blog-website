@@ -191,7 +191,6 @@ const Home = ({ setActive, user, active }) => {
       prevValue[name] = 0;
     }
     prevValue[name]++;
-    // delete prevValue["undefined"];
     return prevValue;
   }, {});
 
