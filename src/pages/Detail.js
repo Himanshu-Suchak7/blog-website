@@ -141,37 +141,46 @@ const Detail = ({ setActive, user }) => {
         const imgURL = await getDownloadURL(storageRef);
 
         const doc = new jsPDF();
-        doc.text("Title: " + blog?.title, 10, 10);
-        doc.text("Created By: " + blog?.author, 10, 20);
-        doc.text(
+
+        let yOffset = 10;
+
+        const addText = (text, x, y) => {
+          const textHeight = doc.getTextDimensions(text).h;
+          doc.text(text, x, y);
+          return y + textHeight + 2; // Add a little space between lines
+        };
+
+        yOffset = addText("Title: " + blog?.title, 10, yOffset);
+        yOffset = addText("Created By: " + blog?.author, 10, yOffset);
+        yOffset = addText(
           "Created On: " + blog?.timestamp.toDate().toDateString(),
           10,
-          30
+          yOffset
         );
-        doc.text("Category: " + blog?.category, 10, 40);
-        doc.text("Description: " + blog?.description, 10, 50);
-        doc.text("Tags: " + blog?.tags.join(", "), 10, 60);
+        yOffset = addText("Category: " + blog?.category, 10, yOffset);
+        const width = doc.internal.pageSize.getWidth();
+        const descriptionLines = doc.splitTextToSize(
+          "Description: " + blog?.description,
+          width - 20
+        );
+        descriptionLines.forEach((line) => {
+          yOffset = addText(line, 10, yOffset);
+        });
+
+        yOffset += 2;
+
+        yOffset = addText("Tags: " + blog?.tags.join(", "), 10, yOffset);
 
         const img = new Image();
         img.src = imgURL;
         img.onload = () => {
-          doc.text("Image: ", 10, 70);
-          doc.addImage(img, "JPEG", 10, 72, 150, 100);
+          yOffset = addText("Image: ", 10, yOffset);
+          doc.addImage(img, "JPEG", 10, yOffset, 150, 100);
           doc.save("blog.pdf");
         };
-
         img.onerror = (error) => {
           console.error("Error loading image:", error);
         };
-        // const descriptionLines = doc.splitTextToSize(
-        //   "Description: " + blog?.description,
-        //   180
-        // );
-        // let yOffset = 75;
-        // descriptionLines.forEach((line) => {
-        //   doc.text(line, 10, yOffset);
-        //   yOffset += 10;
-        // });
       } catch (error) {
         console.error("Error handling download:", error);
       }
