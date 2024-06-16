@@ -26,8 +26,9 @@ import UserComments from "../components/UserComments";
 import { db, app } from "../firebase";
 import Spinner from "../components/Spinner";
 import { jsPDF } from "jspdf";
-import * as XLSX from "xlsx";
-import { Packer, Document, Paragraph, TextRun } from "docx";
+import ExcelJS from "exceljs";
+import { Buffer } from "buffer";
+import { Packer, Document, Paragraph, TextRun, ImageRun } from "docx";
 
 const Detail = ({ setActive, user }) => {
   const userId = user?.uid;
@@ -133,6 +134,7 @@ const Detail = ({ setActive, user }) => {
 
   const storage = getStorage(app);
   const handleDownload = async () => {
+    // For PDF
     if (format === "pdf") {
       try {
         const storageRef = ref(storage, blog.imgUrl);
@@ -140,44 +142,95 @@ const Detail = ({ setActive, user }) => {
 
         const doc = new jsPDF();
         doc.text("Title: " + blog?.title, 10, 10);
+        doc.text("Created By: " + blog?.author, 10, 20);
         doc.text(
           "Created On: " + blog?.timestamp.toDate().toDateString(),
           10,
-          20
+          30
         );
-        doc.text("Category: " + blog?.category, 10, 30);
-        doc.text("Description: " + blog?.description, 10, 40);
-        doc.text("Tags: " + blog?.tags.join(", "), 10, 50);
+        doc.text("Category: " + blog?.category, 10, 40);
+        doc.text("Description: " + blog?.description, 10, 50);
+        doc.text("Tags: " + blog?.tags.join(", "), 10, 60);
 
         const img = new Image();
         img.src = imgURL;
         img.onload = () => {
-          doc.addImage(img, "JPEG", 10, 60, 180, 160);
+          doc.text("Image: ", 10, 70);
+          doc.addImage(img, "JPEG", 10, 72, 150, 100);
           doc.save("blog.pdf");
         };
 
         img.onerror = (error) => {
           console.error("Error loading image:", error);
         };
+        // const descriptionLines = doc.splitTextToSize(
+        //   "Description: " + blog?.description,
+        //   180
+        // );
+        // let yOffset = 75;
+        // descriptionLines.forEach((line) => {
+        //   doc.text(line, 10, yOffset);
+        //   yOffset += 10;
+        // });
       } catch (error) {
         console.error("Error handling download:", error);
       }
-    } else if (format === "excel") {
-      const data = [
-        {
-          Title: blog?.title,
-          Created_By: blog?.author,
-          Created_On: blog?.timestamp.toDate().toDateString(),
-          Category: blog?.category,
-          Description: blog?.description,
-          Tags: blog?.tags.join(", "),
-        },
+    }
+    // For Excel
+    else if (format === "excel") {
+      const storageRef = ref(storage, blog.imgUrl);
+      const imgURL = await getDownloadURL(storageRef);
+      const response = await fetch(imgURL);
+      const imgBlob = await response.blob();
+      const imgData = await imgBlob.arrayBuffer();
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Blog");
+      worksheet.columns = [
+        { header: "Title", key: "title", width: 30 },
+        { header: "Created By", key: "author", width: 15 },
+        { header: "Created On", key: "created_on", width: 20 },
+        { header: "Category", key: "category", width: 15 },
+        { header: "Description", key: "description", width: 50 },
+        { header: "Tags", key: "tags", width: 30 },
+        { header: "Image", width: 30 },
       ];
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Blog");
-      XLSX.writeFile(workbook, "blog.xlsx");
-    } else if (format === "word") {
+      worksheet.addRow({
+        title: blog?.title,
+        author: blog?.author,
+        created_on: blog?.timestamp.toDate().toDateString(),
+        category: blog?.category,
+        description: blog?.description,
+        tags: blog?.tags.join(", "),
+      });
+      const imgBuffer = Buffer.from(await imgBlob.arrayBuffer());
+      worksheet.getRow(2).height = 150;
+      const imageId = workbook.addImage({
+        buffer: imgBuffer,
+        extension: "jpeg",
+      });
+      worksheet.addImage(imageId, {
+        tl: { col: 6, row: 1 },
+        ext: { width: 250, height: 150 },
+      });
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "blog.xlsx";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+    // For Word
+    else if (format === "word") {
+      const storageRef = ref(storage, blog.imgUrl);
+      const imgURL = await getDownloadURL(storageRef);
+      const img = new Image();
+      img.src = imgURL;
+      const response = await fetch(imgURL);
+      const imgBlob = await response.blob();
+      const imgData = await imgBlob.arrayBuffer();
       const doc = new Document({
         sections: [
           {
@@ -186,26 +239,55 @@ const Detail = ({ setActive, user }) => {
               new Paragraph({
                 children: [
                   new TextRun({ text: "Title: " + blog?.title, bold: true }),
+                ],
+              }),
+              new Paragraph({
+                children: [
                   new TextRun({
                     text: "Created By: " + blog?.author,
                     break: 1,
                   }),
+                ],
+              }),
+              new Paragraph({
+                children: [
                   new TextRun({
                     text:
                       "Created On: " + blog?.timestamp.toDate().toDateString(),
                     break: 1,
                   }),
+                ],
+              }),
+              new Paragraph({
+                children: [
                   new TextRun({
                     text: "Category: " + blog?.category,
                     break: 1,
                   }),
+                ],
+              }),
+              new Paragraph({
+                children: [
                   new TextRun({
                     text: "Description: " + blog?.description,
                     break: 1,
                   }),
+                ],
+              }),
+              new Paragraph({
+                children: [
                   new TextRun({
                     text: "Tags: " + blog?.tags.join(", "),
                     break: 1,
+                  }),
+                ],
+              }),
+              new Paragraph({
+                children: [
+                  new TextRun({ text: "Image:" }),
+                  new ImageRun({
+                    data: imgData,
+                    transformation: { width: 250, height: 150 },
                   }),
                 ],
               }),
