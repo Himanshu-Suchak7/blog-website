@@ -1,9 +1,27 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-// import transitions from "bootstrap";
+import bootstrap from "bootstrap/dist/js/bootstrap.bundle";
 
 const Header = ({ active, setActive, user, handleLogout }) => {
   const userId = user?.uid;
+  const navbarRef = useRef(null);
+
+  useEffect(() => {
+    if (navbarRef.current) {
+      // Initialize Bootstrap collapse
+      new bootstrap.Collapse(navbarRef.current, { toggle: false });
+    }
+  }, []);
+
+  const closeNavbar = () => {
+    if (navbarRef.current) {
+      const bsCollapse = bootstrap.Collapse.getInstance(navbarRef.current);
+      if (bsCollapse) {
+        bsCollapse.hide();
+      }
+    }
+  };
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid bg-faded padding-media">
@@ -24,9 +42,10 @@ const Header = ({ active, setActive, user, handleLogout }) => {
             <div
               className="collapse navbar-collapse"
               id="navbarSupportedContent"
+              ref={navbarRef}
             >
               <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                <Link to="/">
+                <Link to="/" onClick={closeNavbar}>
                   <li onClick={() => setActive("home")}>
                     <img
                       src="/assets/logo.png"
@@ -42,7 +61,11 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                     />
                   </li>
                 </Link>
-                <Link to="/" style={{ textDecoration: "none" }}>
+                <Link
+                  to="/"
+                  style={{ textDecoration: "none" }}
+                  onClick={closeNavbar}
+                >
                   <li
                     className={`nav-item nav-link ${
                       active === "home" ? "active" : ""
@@ -53,7 +76,11 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                   </li>
                 </Link>
 
-                <Link to="/blogs" style={{ textDecoration: "none" }}>
+                <Link
+                  to="/blogs"
+                  style={{ textDecoration: "none" }}
+                  onClick={closeNavbar}
+                >
                   <li
                     className={`nav-item nav-link ${
                       active === "blogs" ? "active" : ""
@@ -64,7 +91,11 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                   </li>
                 </Link>
 
-                <Link to="/create" style={{ textDecoration: "none" }}>
+                <Link
+                  to="/create"
+                  style={{ textDecoration: "none" }}
+                  onClick={closeNavbar}
+                >
                   <li
                     className={`nav-item nav-link ${
                       active === "create" ? "active" : ""
@@ -75,7 +106,11 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                   </li>
                 </Link>
 
-                <Link to="/about" style={{ textDecoration: "none" }}>
+                <Link
+                  to="/about"
+                  style={{ textDecoration: "none" }}
+                  onClick={closeNavbar}
+                >
                   <li
                     className={`nav-item nav-link ${
                       active === "about" ? "active" : ""
@@ -105,12 +140,22 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                       <p style={{ marginTop: "12px", marginLeft: "5px" }}>
                         {user?.displayName}
                       </p>
-                      <li className="nav-item nav-link" onClick={handleLogout}>
+                      <li
+                        className="nav-item nav-link"
+                        onClick={() => {
+                          handleLogout();
+                          closeNavbar();
+                        }}
+                      >
                         Logout
                       </li>
                     </>
                   ) : (
-                    <Link to="/auth" style={{ textDecoration: "none" }}>
+                    <Link
+                      to="/auth"
+                      style={{ textDecoration: "none" }}
+                      onClick={closeNavbar}
+                    >
                       <li
                         className={`nav-item nav-link ${
                           active === "login" ? "active" : ""

@@ -11,6 +11,7 @@ import {
   orderBy,
   where,
 } from "firebase/firestore";
+// eslint-disable-next-line
 import { initializeApp } from "firebase/app";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { isEmpty } from "lodash";
@@ -191,6 +192,7 @@ const Detail = ({ setActive, user }) => {
       const imgURL = await getDownloadURL(storageRef);
       const response = await fetch(imgURL);
       const imgBlob = await response.blob();
+      // eslint-disable-next-line
       const imgData = await imgBlob.arrayBuffer();
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Blog");
