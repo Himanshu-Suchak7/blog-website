@@ -13,10 +13,19 @@ const Header = ({ active, setActive, user, handleLogout }) => {
     }
   }, []);
 
-  const closeNavbar = () => {
+  const toggleNavbar = () => {
     if (navbarRef.current) {
       const bsCollapse = bootstrap.Collapse.getInstance(navbarRef.current);
       if (bsCollapse) {
+        bsCollapse.toggle();
+      }
+    }
+  };
+
+  const closeNavbar = () => {
+    if (navbarRef.current) {
+      const bsCollapse = bootstrap.Collapse.getInstance(navbarRef.current);
+      if (bsCollapse && bsCollapse._isShown) {
         bsCollapse.hide();
       }
     }
@@ -30,12 +39,10 @@ const Header = ({ active, setActive, user, handleLogout }) => {
             <button
               className="navbar-toggler mt-3"
               type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarSupportedContent"
-              data-bs-parent="#navbarSupportedContent"
               aria-controls="navbarSupportedContent"
-              aria-expanded="true"
+              aria-expanded="false"
               aria-label="Toggle Navigation"
+              onClick={toggleNavbar}
             >
               <span className="fa fa-bars"></span>
             </button>
@@ -45,8 +52,14 @@ const Header = ({ active, setActive, user, handleLogout }) => {
               ref={navbarRef}
             >
               <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                <Link to="/" onClick={closeNavbar}>
-                  <li onClick={() => setActive("home")}>
+                <Link
+                  to="/"
+                  onClick={() => {
+                    closeNavbar();
+                    setActive("home");
+                  }}
+                >
+                  <li>
                     <img
                       src="/assets/logo.png"
                       alt="logo"
@@ -64,13 +77,15 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                 <Link
                   to="/"
                   style={{ textDecoration: "none" }}
-                  onClick={closeNavbar}
+                  onClick={() => {
+                    closeNavbar();
+                    setActive("home");
+                  }}
                 >
                   <li
                     className={`nav-item nav-link ${
                       active === "home" ? "active" : ""
                     }`}
-                    onClick={() => setActive("home")}
                   >
                     Home
                   </li>
@@ -79,13 +94,15 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                 <Link
                   to="/blogs"
                   style={{ textDecoration: "none" }}
-                  onClick={closeNavbar}
+                  onClick={() => {
+                    closeNavbar();
+                    setActive("blogs");
+                  }}
                 >
                   <li
                     className={`nav-item nav-link ${
                       active === "blogs" ? "active" : ""
                     }`}
-                    onClick={() => setActive("blogs")}
                   >
                     Blogs
                   </li>
@@ -94,13 +111,15 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                 <Link
                   to="/create"
                   style={{ textDecoration: "none" }}
-                  onClick={closeNavbar}
+                  onClick={() => {
+                    closeNavbar();
+                    setActive("create");
+                  }}
                 >
                   <li
                     className={`nav-item nav-link ${
                       active === "create" ? "active" : ""
                     }`}
-                    onClick={() => setActive("create")}
                   >
                     Create
                   </li>
@@ -109,13 +128,15 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                 <Link
                   to="/about"
                   style={{ textDecoration: "none" }}
-                  onClick={closeNavbar}
+                  onClick={() => {
+                    closeNavbar();
+                    setActive("about");
+                  }}
                 >
                   <li
                     className={`nav-item nav-link ${
                       active === "about" ? "active" : ""
                     }`}
-                    onClick={() => setActive("about")}
                   >
                     About
                   </li>
@@ -154,13 +175,15 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                     <Link
                       to="/auth"
                       style={{ textDecoration: "none" }}
-                      onClick={closeNavbar}
+                      onClick={() => {
+                        closeNavbar();
+                        setActive("login");
+                      }}
                     >
                       <li
                         className={`nav-item nav-link ${
                           active === "login" ? "active" : ""
                         }`}
-                        onClick={() => setActive("login")}
                       >
                         Login/Signup
                       </li>
