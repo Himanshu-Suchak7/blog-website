@@ -4,6 +4,7 @@ import bootstrap from "bootstrap/dist/js/bootstrap.bundle";
 
 const Header = ({ active, setActive, user, handleLogout }) => {
   const userId = user?.uid;
+  const userPhotoURL = user?.photoURL; // Get the user's profile picture URL
   const navbarRef = useRef(null);
 
   useEffect(() => {
@@ -148,7 +149,10 @@ const Header = ({ active, setActive, user, handleLogout }) => {
                     <>
                       <div className="profile-logo">
                         <img
-                          src="https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                          src={
+                            userPhotoURL ||
+                            "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                          }
                           alt="logo"
                           style={{
                             width: "30px",
