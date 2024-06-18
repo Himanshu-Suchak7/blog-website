@@ -42,7 +42,7 @@ const Detail = ({ setActive, user }) => {
   let [likes, setLikes] = useState([]);
   const [userComment, setUserComment] = useState("");
   const [relatedBlogs, setRelatedBlogs] = useState([]);
-  const [format, setFormat] = useState("pdf"); // State to hold the selected format
+  const [format, setFormat] = useState("pdf");
 
   useEffect(() => {
     const getRecentBlogs = async () => {
@@ -97,6 +97,10 @@ const Detail = ({ setActive, user }) => {
 
   const handleComment = async (e) => {
     e.preventDefault();
+    if (!userComment.trim()) {
+      toast.error("Comment must not be empty");
+      return;
+    }
     comments.push({
       createdAt: Timestamp.fromDate(new Date()),
       userId,
@@ -119,17 +123,17 @@ const Detail = ({ setActive, user }) => {
         const index = likes.findIndex((id) => id === userId);
         if (index === -1) {
           likes.push(userId);
-          setLikes([...new Set(likes)]);
         } else {
           likes = likes.filter((id) => id !== userId);
-          setLikes(likes);
         }
+      } else {
+        likes = [userId];
       }
       await updateDoc(doc(db, "blogs", id), {
         ...blog,
         likes,
-        timestamp: serverTimestamp(),
       });
+      setLikes(likes);
     }
   };
 

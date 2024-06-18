@@ -22,7 +22,7 @@ const Header = ({ active, setActive, user, handleLogout }) => {
       }
     }
   };
-
+  console.log(user);
   const closeNavbar = () => {
     if (navbarRef.current) {
       const bsCollapse = bootstrap.Collapse.getInstance(navbarRef.current);
@@ -199,6 +199,7 @@ const Header = ({ active, setActive, user, handleLogout }) => {
           </nav>
         </div>
       </div>
+      <div></div>
     </nav>
   );
 };
