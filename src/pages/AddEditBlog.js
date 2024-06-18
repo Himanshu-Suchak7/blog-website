@@ -14,7 +14,6 @@ import {
 } from "firebase/firestore";
 import { toast } from "react-toastify";
 import JoditEditor from "jodit-react";
-import DOMPurify from "dompurify";
 
 const initialState = {
   title: "",
@@ -109,16 +108,11 @@ const AddEditBlog = ({ user, setActive }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const sanitizedContent = DOMPurify.sanitize(content, {
-      ALLOWED_TAGS: [],
-      ALLOWED_ATTR: [],
-    });
-    if (category && tags.length > 0 && title && sanitizedContent && trending) {
+    if (category && tags.length > 0 && title && content && trending) {
       try {
         const newForm = {
           ...form,
-          description: sanitizedContent,
-          titleLowerCase: title.toLowerCase(),
+          description: content,
         };
         if (!id) {
           await addDoc(collection(db, "blogs"), {

@@ -1,7 +1,8 @@
-// import React, { useEffect } from "react";
+import React from "react";
 import FontAwesome from "react-fontawesome";
 import { Link } from "react-router-dom";
 import { excerpt } from "../utility";
+import DOMPurify from "dompurify";
 
 const BlogSection = ({
   id,
@@ -15,6 +16,12 @@ const BlogSection = ({
   user,
   handleDelete,
 }) => {
+  const sanitizedContent = DOMPurify.sanitize(description, {
+    ALLOWED_TAGS: [],
+    ALLOWED_ATTR: [],
+  });
+  const shortDescription = excerpt(sanitizedContent, 120);
+
   return (
     <div>
       <div className="row pb-4" key={id}>
@@ -35,9 +42,7 @@ const BlogSection = ({
               {timestamp.toDate().toDateString()}
             </span>
           </div>
-          <div className="short-description text-start">
-            {excerpt(description, 120)}
-          </div>
+          <div className="short-description text-start">{shortDescription}</div>
           <Link to={`/detail/${id}`}>
             <button className="btn btn-read">Read More</button>
           </Link>

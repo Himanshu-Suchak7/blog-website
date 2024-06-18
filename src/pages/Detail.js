@@ -148,7 +148,7 @@ const Detail = ({ setActive, user }) => {
         const addText = (text, x, y) => {
           const textHeight = doc.getTextDimensions(text).h;
           doc.text(text, x, y);
-          return y + textHeight + 2; // Add a little space between lines
+          return y + textHeight + 2;
         };
 
         yOffset = addText("Title: " + blog?.title, 10, yOffset);
@@ -161,7 +161,7 @@ const Detail = ({ setActive, user }) => {
         yOffset = addText("Category: " + blog?.category, 10, yOffset);
         const width = doc.internal.pageSize.getWidth();
         const descriptionLines = doc.splitTextToSize(
-          "Description: " + blog?.description,
+          "Description: " + blog?.description.replace(/<[^>]+>/g, ""),
           width - 20
         );
         descriptionLines.forEach((line) => {
@@ -210,7 +210,7 @@ const Detail = ({ setActive, user }) => {
         author: blog?.author,
         created_on: blog?.timestamp.toDate().toDateString(),
         category: blog?.category,
-        description: blog?.description,
+        description: blog?.description.replace(/<[^>]+>/g, ""),
         tags: blog?.tags.join(", "),
       });
       const imgBuffer = Buffer.from(await imgBlob.arrayBuffer());
@@ -280,7 +280,9 @@ const Detail = ({ setActive, user }) => {
               new Paragraph({
                 children: [
                   new TextRun({
-                    text: "Description: " + blog?.description,
+                    text:
+                      "Description: " +
+                      blog?.description.replace(/<[^>]+>/g, ""),
                     break: 1,
                   }),
                 ],
@@ -337,7 +339,11 @@ const Detail = ({ setActive, user }) => {
                 {blog?.timestamp.toDate().toDateString()}
                 <Like handleLike={handleLike} likes={likes} userId={userId} />
               </span>
-              <p className="text-start">{blog?.description}</p>
+              {/* <p className="text-start">{blog?.description}</p> */}
+              <p
+                className="text-start"
+                dangerouslySetInnerHTML={{ __html: blog?.description }}
+              />
               <div className="text-start">
                 <Tags tags={blog?.tags} />
               </div>
