@@ -30,6 +30,7 @@ function useQuery() {
 const Home = ({ setActive, user, active }) => {
   const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState([]);
+  const [mostPopularBlogs, setMostPopularBlogs] = useState([]);
   const [tags, setTags] = useState([]);
   const [search, setSearch] = useState("");
   const [lastVisible, setLastVisible] = useState(null);
@@ -88,14 +89,14 @@ const Home = ({ setActive, user, active }) => {
 
   const getBlogs = async () => {
     const blogRef = collection(db, "blogs");
-    console.log(blogRef);
     const firstFour = query(blogRef, orderBy("title"), limit(4));
     const docSnapshot = await getDocs(firstFour);
     setBlogs(docSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+    setMostPopularBlogs(
+      docSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    );
     setLastVisible(docSnapshot.docs[docSnapshot.docs.length - 1]);
   };
-
-  console.log("blogs", blogs);
 
   const updateState = (docSnapshot) => {
     const isCollectionEmpty = docSnapshot.size === 0;
@@ -178,7 +179,6 @@ const Home = ({ setActive, user, active }) => {
   const handleChange = (e) => {
     const { value } = e.target;
     if (isEmpty(value)) {
-      console.log("test");
       getBlogs();
       setHide(false);
     }
@@ -201,8 +201,6 @@ const Home = ({ setActive, user, active }) => {
       count: counts[k],
     };
   });
-
-  console.log("categoryCount", categoryCount);
 
   return (
     <div className="container-fluid pb-4 pt-4 padding">
@@ -238,7 +236,7 @@ const Home = ({ setActive, user, active }) => {
             <Search search={search} handleChange={handleChange} />
             <div className="blog-heading text-start py-2 mb-4">Tags</div>
             <Tags tags={tags} />
-            <FeatureBlogs title={"Most Popular"} blogs={blogs} />
+            <FeatureBlogs title={"Most Popular"} blogs={mostPopularBlogs} />
             <Category catgBlogsCount={categoryCount} />
           </div>
         </div>
