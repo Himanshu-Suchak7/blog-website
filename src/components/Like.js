@@ -6,15 +6,19 @@ const Like = ({ handleLike, likes, userId }) => {
     let tooltipTriggerList = [].slice.call(
       document.querySelectorAll('[data-bs-toggle="tooltip"]')
     );
-    // eslint-disable-next-line
-    let tootipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    let tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new Tooltip(tooltipTriggerEl);
     });
+
+    // Cleanup tooltips on unmount
+    return () => {
+      tooltipList.forEach((tooltip) => tooltip.dispose());
+    };
   }, []);
 
   const LikeStatus = () => {
     if (likes?.length > 0) {
-      return likes.find((id) => id === userId) ? (
+      return likes.includes(userId) ? (
         <>
           <i className="bi bi-hand-thumbs-up-fill" />
           &nbsp;{likes.length} {likes.length === 1 ? "Like" : "Likes"}
@@ -33,29 +37,28 @@ const Like = ({ handleLike, likes, userId }) => {
       </>
     );
   };
+
   return (
-    <>
-      <span
-        style={{ float: "right", cursor: "pointer", marginTop: "-7px" }}
-        onClick={!userId ? null : handleLike}
-      >
-        {!userId ? (
-          <button
-            type="button"
-            className="btn btn-primary"
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            title="Please Login to like post"
-          >
-            <LikeStatus />
-          </button>
-        ) : (
-          <button type="button" className="btn btn-primary">
-            <LikeStatus />
-          </button>
-        )}
-      </span>
-    </>
+    <span
+      style={{ float: "right", cursor: "pointer", marginTop: "-7px" }}
+      onClick={!userId ? null : handleLike}
+    >
+      {!userId ? (
+        <button
+          type="button"
+          className="btn btn-primary"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="Please Login to like post"
+        >
+          <LikeStatus />
+        </button>
+      ) : (
+        <button type="button" className="btn btn-primary">
+          <LikeStatus />
+        </button>
+      )}
+    </span>
   );
 };
 

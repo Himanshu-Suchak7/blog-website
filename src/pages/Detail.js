@@ -119,21 +119,22 @@ const Detail = ({ setActive, user }) => {
 
   const handleLike = async () => {
     if (userId) {
+      let newLikes;
       if (blog?.likes) {
         const index = likes.findIndex((id) => id === userId);
         if (index === -1) {
-          likes.push(userId);
+          newLikes = [...likes, userId];
         } else {
-          likes = likes.filter((id) => id !== userId);
+          newLikes = likes.filter((id) => id !== userId);
         }
       } else {
-        likes = [userId];
+        newLikes = [userId];
       }
       await updateDoc(doc(db, "blogs", id), {
         ...blog,
-        likes,
+        likes: newLikes,
       });
-      setLikes(likes);
+      setLikes(newLikes);
     }
   };
 
