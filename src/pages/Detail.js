@@ -140,7 +140,6 @@ const Detail = ({ setActive, user }) => {
 
   const storage = getStorage(app);
   const handleDownload = async () => {
-    // For PDF
     if (format === "pdf") {
       try {
         const storageRef = ref(storage, blog.imgUrl);
@@ -149,39 +148,53 @@ const Detail = ({ setActive, user }) => {
         const doc = new jsPDF();
 
         let yOffset = 10;
+        const lineHeight = 10;
+        const margin = 10;
+        const pageHeight = doc.internal.pageSize.height;
+        const width = doc.internal.pageSize.getWidth();
 
+        // Function to add text with handling of page breaks
         const addText = (text, x, y) => {
-          const textHeight = doc.getTextDimensions(text).h;
-          doc.text(text, x, y);
-          return y + textHeight + 2;
+          const textLines = doc.splitTextToSize(text, width - 20); // Adjust width as needed
+          textLines.forEach((line) => {
+            if (y + lineHeight > pageHeight - margin) {
+              // Check if space is left on the page
+              doc.addPage();
+              y = margin; // Reset y offset for new page
+            }
+            doc.text(x, y, line);
+            y += lineHeight;
+          });
+          return y;
         };
 
-        yOffset = addText("Title: " + blog?.title, 10, yOffset);
-        yOffset = addText("Created By: " + blog?.author, 10, yOffset);
+        yOffset = addText("Title: " + blog?.title, margin, yOffset);
+        yOffset = addText("Created By: " + blog?.author, margin, yOffset);
         yOffset = addText(
           "Created On: " + blog?.timestamp.toDate().toDateString(),
-          10,
+          margin,
           yOffset
         );
-        yOffset = addText("Category: " + blog?.category, 10, yOffset);
-        const width = doc.internal.pageSize.getWidth();
-        const descriptionLines = doc.splitTextToSize(
-          "Description: " + blog?.description.replace(/<[^>]+>/g, ""),
-          width - 20
-        );
-        descriptionLines.forEach((line) => {
-          yOffset = addText(line, 10, yOffset);
-        });
+        yOffset = addText("Category: " + blog?.category, margin, yOffset);
 
-        yOffset += 2;
+        // Handle description separately for more control
+        const description =
+          "Description: " + blog?.description.replace(/<[^>]+>/g, "");
+        yOffset = addText(description, margin, yOffset);
 
-        yOffset = addText("Tags: " + blog?.tags.join(", "), 10, yOffset);
+        // Add tags section
+        yOffset = addText("Tags: " + blog?.tags.join(", "), margin, yOffset);
 
+        // Add image
         const img = new Image();
         img.src = imgURL;
         img.onload = () => {
-          yOffset = addText("Image: ", 10, yOffset);
-          doc.addImage(img, "JPEG", 10, yOffset, 150, 100);
+          if (yOffset + 100 > pageHeight - margin) {
+            // Check if space is left on the page
+            doc.addPage();
+            yOffset = margin;
+          }
+          doc.addImage(img, "JPEG", margin, yOffset, 150, 100);
           doc.save("blog.pdf");
         };
         img.onerror = (error) => {
